@@ -30,11 +30,7 @@ class StudentViewModel(private val dao: StudentDatabase) : ViewModel(){
 
     fun insertStudent(student: Student)
     {
-        var lstStudent = students.value
-        var listofStudents = mutableListOf<Student>()
-        if (lstStudent != null) {
-            listofStudents.addAll(lstStudent)
-        }
+        var listofStudents = students.value!!.toMutableList()
         listofStudents.add(student)
         students.postValue(listofStudents)
         viewModelScope.launch (Dispatchers.IO) {
@@ -44,31 +40,24 @@ class StudentViewModel(private val dao: StudentDatabase) : ViewModel(){
     fun updateStudent(student:Student)
     {
         var listStudents = students.value
-        var listofStudents = mutableListOf<Student>()
-        if(listStudents!=null)
-        {
-            listofStudents.addAll(listStudents)
+        val newList = listStudents!!.map {
+            if (it.id == student.id)
+                student
+            else
+                it
         }
-        var idx = -1
-        for(i in listofStudents.indices)
-        {
-            if(listofStudents[i].id == student.id ){
-                idx = i
-                break
-            }
-        }
-        if(idx >= 0){
-            listofStudents.removeAt(idx)
-            listofStudents.add(student)
-        }
-        students.postValue(listofStudents)
-
-        viewModelScope.launch (Dispatchers.IO){
-            dao.updateStudent(student)
-        }
-
+            students.postValue(newList)
 
     }
+    fun deleteStudent(student:Student) {
+        var listStudents = students.value
+        var newList = listStudents!!.filter {
+            it.id != student.id
+        }
+        students.postValue(newList)
+    }
+
+
 
 
 }
